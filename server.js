@@ -5,6 +5,9 @@ require('dotenv').config();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const app = express();
 const PORT = 3000;
+const fileUpload = require('express-fileupload');
+const Jimp = require('jimp').default;
+app.use(fileUpload());
 
 // In-memory data structure
 let projectData = {}; // { projectName: { priority: 'High', workers: [ {name, role, isExtra}, ... ] } }
@@ -41,6 +44,68 @@ app.post('/api/ai-chat', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ reply: 'AI failed to generate a response.' });
+  }
+});
+app.post('/api/detect-anomalies', async (req, res) => {
+  try {
+    const img1 = req.files?.img1;
+    const img2 = req.files?.img2;
+
+    if (!img1 || !img2) {
+      return res.status(400).json({ result: "Both images are required." });
+    }
+
+    const [image1, image2] = await Promise.all([
+      Jimp.read(img1.data),
+      Jimp.read(img2.data)
+    ]);
+
+    if (
+      image1.bitmap.width !== image2.bitmap.width ||
+      image1.bitmap.height !== image2.bitmap.height
+    ) {
+      return res.status(400).json({ result: "Images must be the same size." });
+    }
+
+    let diffCount = 0;
+
+    image1.scan(0, 0, image1.bitmap.width, image1.bitmap.height, function (x, y, idx) {
+      const pixel1 = {
+        r: this.bitmap.data[idx + 0],
+        g: this.bitmap.data[idx + 1],
+        b: this.bitmap.data[idx + 2]
+      };
+
+      const pixel2 = {
+        r: image2.bitmap.data[idx + 0],
+        g: image2.bitmap.data[idx + 1],
+        b: image2.bitmap.data[idx + 2]
+      };
+
+      const distance = Math.abs(pixel1.r - pixel2.r) +
+                       Math.abs(pixel1.g - pixel2.g) +
+                       Math.abs(pixel1.b - pixel2.b);
+
+      if (distance > 30) {
+        diffCount++;
+      }
+    });
+
+    const totalPixels = image1.bitmap.width * image1.bitmap.height;
+    const diffPercent = ((diffCount / totalPixels) * 100).toFixed(2);
+
+    let message = `✅ Images compared successfully.<br><strong>Difference:</strong> ${diffPercent}% of pixels changed.`;
+
+    if (diffPercent > 10) {
+      message += `<br><strong>🔍 Significant changes detected.</strong>`;
+    } else {
+      message += `<br><strong>✅ Minor or no visible changes.</strong>`;
+    }
+
+    return res.json({ result: message });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ result: '❌ Image comparison failed.' });
   }
 });
 
