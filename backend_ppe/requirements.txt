@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pillow
+python-multipart
+torch
+opencv-python-headless
+pyyaml
+numpy
+ultralytics  # YOLOv8 library

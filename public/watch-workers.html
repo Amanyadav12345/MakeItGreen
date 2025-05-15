@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Watch Your Workers | CrewCore</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f8f9fb;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #2196f3;
+      color: white;
+      padding: 16px 24px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .track-button {
+      background-color: white;
+      color: #2196f3;
+      border: none;
+      padding: 10px 16px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .container {
+      padding: 40px 20px;
+      max-width: 800px;
+      margin: auto;
+      text-align: center;
+    }
+
+    video {
+      width: 100%;
+      max-width: 640px;
+      border-radius: 12px;
+      border: 3px solid #2196f3;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    .status-box {
+      margin-top: 20px;
+      padding: 16px;
+      border-left: 5px solid #2196f3;
+      background-color: #f1f1f1;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .status-good { border-left-color: green; color: green; }
+    .status-bad { border-left-color: red; color: red; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">CrewCore</div>
+    <a href="index.html" class="track-button">⬅ Back to Dashboard</a>
+    <a href="image-anomaly.html" class="track-button"> Image Anomaly</a>
+    <a href="optimize-waste.html" class="track-button"> Optimize Waste</a>
+  </nav>
+
+  <div class="container">
+    <h1>👷‍♂️ Watch Your Workers</h1>
+    <p>Live PPE detection using your system's webcam.</p>
+
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" style="display: none;"></canvas>
+
+    <div id="ppeResult" class="status-box">Initializing camera...</div>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const resultDiv = document.getElementById('ppeResult');
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+        resultDiv.textContent = "Camera started. Scanning every 4 seconds...";
+        setInterval(scanFrame, 4000);
+      })
+      .catch(() => {
+        resultDiv.innerHTML = '<span style="color:red;">❌ Cannot access camera. Please allow permission.</span>';
+      });
+
+    async function scanFrame() {
+      if (!video.videoWidth) return;
+
+      const ctx = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const dataURL = canvas.toDataURL('image/jpeg');
+
+      resultDiv.textContent = "🕵️ Detecting PPE...";
+
+      try {
+        const res = await fetch("http://localhost:8000/detect-ppe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: dataURL })
+        });
+
+        const data = await res.json();
+        updateResultUI(data.result);
+      } catch {
+        resultDiv.textContent = "❌ Detection failed. Retrying...";
+        resultDiv.className = "status-box status-bad";
+      }
+    }
+
+    function updateResultUI(result) {
+      resultDiv.textContent = ` ${result}`;
+      resultDiv.className = "status-box";
+
+      // Mark red if any item is ❌
+      if (result.includes("❌")) {
+        resultDiv.classList.add("status-bad");
+      } else {
+        resultDiv.classList.add("status-good");
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CrewCore – centralized control of your crew</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <nav class="navbar">
+  <div class="navbar-left">
+    <span class="logo">CrewCore</span>
+  </div>
+  <div class="navbar-right">
+    <a href="watch-workers.html" class="track-button"> Track Workers</a>
+    <a href="image-anomaly.html" class="track-button"> Image Anomaly</a>
+    <a href="optimize-waste.html" class="track-button"> Optimize Waste</a>
+  </div>
+</nav>
+    <h1>CrewCore</h1>
+
+    <div class="section">
+      <h2>Create Project</h2>
+      <form id="projectForm">
+        <input type="text" id="projectName" placeholder="Project Name" required />
+        <select id="priority">
+          <option value="High">High</option>
+          <option value="Medium" selected>Medium</option>
+          <option value="Low">Low</option>
+        </select>
+        <button type="submit">Add Project</button>
+      </form>
+    </div>
+
+    <div class="section">
+      <h2>Select Project</h2>
+      <select id="projectSelect"></select>
+    </div>
+
+    <div class="section">
+      <h2>Add Worker</h2>
+      <form id="workerForm">
+        <input type="text" id="name" placeholder="Worker Name" required />
+        <input type="text" id="role" placeholder="Worker Role" required />
+        <label>
+          <input type="checkbox" id="isExtra" />
+          Mark as Extra
+        </label>
+        <button type="submit">Add Worker</button>
+      </form>
+    </div>
+
+    <div class="section">
+      <h2>Workers in Project</h2>
+      <table id="workerTable">
+        <thead><tr><th>Name</th><th>Role</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>📊 Project Overview</h2>
+      <canvas id="projectChart" width="400" height="200"></canvas>
+    </div>
+    <div class="section">
+      <h2>💬 AI Chat Assistant</h2>
+      <form id="chatForm">
+        <input type="text" id="chatInput" placeholder="E.g., We need more plumbers in Building 1" required />
+        <button type="submit">Ask</button>
+      </form>
+      <div id="chatOutput" class="ai-box"></div>
+    </div>
+  </div>
+  
+
+  <script src="script.js"></script>
+</body>
+</html>

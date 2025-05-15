@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Optimize Waste | CrewCore</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: #f7f9fc;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #2196f3;
+      color: white;
+      padding: 16px 24px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .track-button {
+      background-color: white;
+      color: #2196f3;
+      border: none;
+      padding: 10px 16px;
+      font-weight: bold;
+      border-radius: 4px;
+      text-decoration: none;
+      margin-left: 12px;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+
+    h1, p {
+      text-align: center;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    form input {
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    form button {
+      padding: 12px;
+      font-size: 16px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 4px;
+    }
+
+    .ai-box {
+      margin-top: 40px;
+      padding: 20px;
+      background: #e9f5e9;
+      border-left: 6px solid #4caf50;
+      font-size: 16px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">CrewCore</div>
+    <div class="navbar-right">
+      <a href="index.html" class="track-button">Dashboard</a>
+      <a href="image-anomaly.html" class="track-button"> Image Anomaly</a>
+      <a href="watch-workers.html" class="track-button"> Track Workers</a>
+      <!-- <a href="optimize-waste.html" class="track-button"> Optimize Waste</a> -->
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>♻️ Waste Optimization Forecast</h1>
+    <p>Enter project details to receive an AI-driven forecast on potential material waste and environmental impact.</p>
+
+    <form id="wasteForm">
+      <input type="text" placeholder="Building size (sq ft)" id="buildingSize" required />
+      <input type="number" placeholder="Material waste factor (%)" id="wasteFactor" required />
+      <input type="text" placeholder="Construction method (e.g. RCC)" id="method" required />
+      <input type="text" placeholder="Project phase (e.g. foundation)" id="phase" required />
+      <input type="number" placeholder="Project completion (%)" id="completion" required />
+      <input type="text" placeholder="Climate conditions (e.g. humid)" id="climate" required />
+      <button type="submit">Forecast Waste</button>
+    </form>
+
+    <div id="wasteResult" class="ai-box">
+      Your waste forecast will appear here.
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('wasteForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const output = document.getElementById('wasteResult');
+      output.innerHTML = 'Forecasting...';
+
+      const body = {
+        buildingSize: document.getElementById('buildingSize').value,
+        wasteFactor: document.getElementById('wasteFactor').value,
+        method: document.getElementById('method').value,
+        phase: document.getElementById('phase').value,
+        completionPercent: document.getElementById('completion').value,
+        climate: document.getElementById('climate').value
+      };
+
+      try {
+        const res = await fetch('/api/forecast-waste', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        output.innerHTML = data.forecast;
+      } catch {
+        output.innerHTML = 'Failed to get AI response.';
+      }
+    });
+  </script>
+</body>
+</html>
